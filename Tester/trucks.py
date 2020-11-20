@@ -1,14 +1,15 @@
 """
-circling.py
+trucks.py
 By: Jarod Gilliam
 
-This program pings a message around in a circle between n logical processes where n is a number given by the user.
+This program is designed to simulate trucks moving around.
 
 
 Controls:
  For all programs:
-  -p VALUE = VALUE is the number of logical processes the simulation will use
-  -s VALUE = VALUE indicates the end of simulation time
+  -s VALUE = VALUE is the number truck stops
+  -t VALUE = VALUE is the number of active trucks
+  -l VALUE = VALUE indicates the end of simulation time
   -f = fixed latency between logical processes (will be the value of -k (default or set) if -f is given)
   -k VALUE = VALUE is the upper limit of latency between logical processes
   -r VALUE = the seed of the random amount of latency between logical processes (does nothing when -f is given aka the latency is fixed)
