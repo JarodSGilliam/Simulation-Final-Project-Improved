@@ -37,6 +37,7 @@ parser.add_argument('-f', action="store_true", dest="STATIC_LATENCY",default=Fal
 parser.add_argument('-k', action="store", dest="LATENCY_LIMIT",default=5, type=int)
 parser.add_argument('-r', action="store", dest="SEED",default=random.randint(1,310921094098), type=int)
 args = parser.parse_args()
+ownsTruck = False
 
 
 #Variables
@@ -157,14 +158,23 @@ class truck():
         
 
 class driver():
-    def __init__(self):
+    def __init__(self, truckId):
         global driverCount
         driverCount += 1
         self.id = driverCount
+        global ownsTruck
+        self.hasSpecificTruck = ownsTruck
+        self.truck = truckId
         return
     
     def getId(self):
         return self.id
+    
+    def getTruck(self):
+        if (self.hasSpecificTruck):
+            return self.truck
+        else:
+            return False
 
 
 #RUNNING
