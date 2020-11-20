@@ -40,9 +40,9 @@ args = parser.parse_args()
 
 
 #Variables
-bounces = 0
 caravanCount = 0
 truckCount = 0
+driverCount = 0
 
 arrives = 0
 leaves = 0
@@ -57,28 +57,14 @@ names = ["a", "b", "c", "d", "e", "f", "g"]
 
 #The classes:
 class truck_stop:
-    #is an object
-    def __init__(self, id): #ping's initilization (Iproc)
+    def __init__(self, id):
         self.id = id
         self.trucks = []
+        self.drivers = []
         return
-        #print("ping is initilized")
         
-    # def receiveMessage(self, message): #ping's running thing (Proc)
-    #     newTarget = message.target + 1
-    #     if (newTarget == args.NUMBER_OF_LPS):
-    #         newTarget = 0
-    #     if (args.STATIC_LATENCY):   
-    #         API.sendMessage(API.time + args.LATENCY_LIMIT, "circle" + str(newTarget), newTarget, "") #args.LATENCY_LIMIT
-    #     else:
-    #         API.sendMessage(API.time + random.randint(1, args.LATENCY_LIMIT), "circle" + str(newTarget), newTarget, "") #args.LATENCY_LIMIT
-    #     global bounces
-    #     bounces += 1
-    #     print(self.id)
-    
     def executeEvent(self, event):
         if (event.getType() == "arrive"):
-            # print(event.getPayload().getId())
             self.arrive(event.getPayload())
             return
         elif (event.getType() == "leave"):
@@ -88,6 +74,9 @@ class truck_stop:
             print(event.getType())
     
     def leave(self, truckId):
+        if (len(self.drivers) == 0):
+            API.addEvent(API.time + 1, "leave", self.id, truckId)
+            return
         truck = None
         for i in range(len(self.trucks)):
             if (self.trucks[i].getId() == truckId):
@@ -95,24 +84,27 @@ class truck_stop:
                 break
         if (truck == None):
             print("Tried to remove truck that doesn't exist")
-            return
+            return 
+        truck.addDriver(self.drivers.pop(0))
         API.addEvent(API.time + getLatency(), "arrive", truck.getNextTarget(), truck)
-        # print("Truck " + str(truckId) + " left " + str(self.id) + ". (" + str(len(self.trucks)) + " remaining)")
         global leaves
         leaves = leaves + 1
+        # if (self.id == 0):
+            # print(len(self.drivers))
+        # print("leave from " + str(self.id))
+
     
     def arrive(self, truck):
-        waitTime = truck.getWaitTime
+        waitTime = truck.getWaitTime()
         self.trucks.append(truck)
-        # print(self.trucks[0].getId())
         API.addEvent(API.time + getLatency(), "leave", self.id, truck.getId())
-        # print("Truck " + str(truck.getId()) + " arrived at " + str(self.id) + ".")
         global arrives
         arrives = arrives + 1
+        self.drivers.append(truck.takeDriver())
+        # print("arrive at " + str(self.id))
 
-    def destructor(self): #ping's destructor (Fproc)
+    def destructor(self):
         return
-        #print("done")
 
 def getLatency():
     if (args.STATIC_LATENCY):
@@ -127,7 +119,7 @@ def travelTime(thisStop, nextStop):
 
 
 class truck():
-    def __init__(self):
+    def __init__(self, driver):
         global truckCount
         truckCount += 1
         self.id = truckCount
@@ -135,6 +127,7 @@ class truck():
         for i in range(100):
             self.truckTarget.append(random.randint(0, 4))
         self.waitTime = 5
+        self.driver = driver
     
     def getId(self):
         return self.id
@@ -144,12 +137,43 @@ class truck():
     
     def getWaitTime(self):
         return self.waitTime
+    
+    def getDriver(self):
+        return self.driver
+    
+    def takeDriver(self):
+        if (self.driver == None):
+            return False
+        output = self.driver
+        self.driver = None
+        return output
+    
+    def addDriver(self, driver):
+        if (self.driver == None):
+            self.driver = driver
+            return True
+        else:
+            return False
+        
+
+class driver():
+    def __init__(self):
+        global driverCount
+        driverCount += 1
+        self.id = driverCount
+        return
+    
+    def getId(self):
+        return self.id
 
 
 #RUNNING
 
 #Prepping the Kernal
 print("Working...")
+drivers = []
+for i in range(args.NUMBER_OF_TRUCKS):
+    drivers.append(driver())
 LPs = []
 for i in range(args.NUMBER_OF_STOPS):
     LPs.append(truck_stop(i))
@@ -157,8 +181,7 @@ API.initialize(LPs, args.SIM_LENGTH)
 
 # API.sendMessage(1, "circle0", 0, "")
 for i in range(args.NUMBER_OF_TRUCKS):
-    API.addEvent(1, "arrive", random.randint(0, 4), truck())
-bounces += 1
+    API.addEvent(1, "arrive", random.randint(0, 4), truck(drivers[i]))
 
 
 #Running the Kernal

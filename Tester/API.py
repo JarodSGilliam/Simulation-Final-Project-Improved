@@ -4,7 +4,7 @@ API.py
 The backend that allows the pingpong.py, circling.py, and phold to work.
 
 Return:
- This will not return anything. Running it on its own will do nothing. It exists soley as support for the other three programs (and many others potentially).
+ This will not return anything. Running it on its own will do nothing. It exists solely as support for the other three programs (and many others potentially).
 """
 
 #SETUP
