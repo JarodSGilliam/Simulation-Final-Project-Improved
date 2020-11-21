@@ -95,7 +95,6 @@ class truck_stop:
             # print(len(self.drivers))
         # print("leave from " + str(self.id))
 
-    
     def arrive(self, truck):
         waitTime = truck.getWaitTime()
         self.trucks.append(truck)
@@ -105,6 +104,28 @@ class truck_stop:
         self.drivers.append(truck.takeDriver())
         # print("arrive at " + str(self.id))
     
+    def leave2(self, driverId):
+        if (len(self.caravans) < 1):
+            API.addEvent(API.time + 1, "leave", self.id, driverId)
+            print("Driver ready but no caravans")
+            return
+        driver = None
+        for i in range(len(self.drivers)):
+            if self.drivers[i].id == driverId:
+                driver = self.drivers.pop(i)
+                break
+        if (driver == None):
+            print("Error: Tried to get a driver that is not here")
+        self.caravans.sort()
+        outgoingCaravan = self.caravans.pop(0)
+        print("Selectd caravan of length " + str(len(outgoingCaravan)) + ".")
+        outgoingCaravan.addDriver(driver)
+        # caravanId = outgoingCaravan.id #for testing
+        API.addEvent(API.time + getLatency(), "arrive", outgoingCaravan.destination, outgoingCaravan)
+        # global leaves #for testing
+        # leaves += 1 #for testing
+        # print("caravan " + str(outgoingCaravan) + "just left from " + str(self.id)) #for testing
+
     def arrive2(self, caravan):
         caravanDriver = caravan.takeDriver()
         API.addEvent(API.time + caravanDriver.wait(), "leave", self.id, caravanDriver.id)
@@ -180,7 +201,6 @@ class truck():
             return True
         else:
             return False
-        
 
 class driver():
     def __init__(self, truckId = None):
@@ -191,6 +211,7 @@ class driver():
             global ownsTruck
             self.hasSpecificTruck = ownsTruck
             self.truck = truckId
+        self.ready = False
         return
     
     def getId(self):
