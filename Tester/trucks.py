@@ -62,6 +62,7 @@ class truck_stop:
         self.id = id
         self.trucks = []
         self.drivers = []
+        self.caravans = []
         return
         
     def executeEvent(self, event):
@@ -103,6 +104,30 @@ class truck_stop:
         arrives = arrives + 1
         self.drivers.append(truck.takeDriver())
         # print("arrive at " + str(self.id))
+    
+    def arrive2(self, caravan):
+        caravanDriver = caravan.takeDriver()
+        API.addEvent(API.time + caravanDriver.wait(), "leave", self.id, caravanDriver.id)
+        self.drivers.append()
+        for i in range(len(caravan)):
+            truck = caravan.takeNextTruck()
+            target = truck.getNextTarget()
+            self.addToCaravan(truck, target)
+        # caravanId = caravan.Id #for testing
+        del caravan
+        for i in range(len(self.drivers)):
+            if (self.drivers[i].ready):
+                API.addEvent(API.time, "leave", self.id, self.drivers[i].id)
+        # global arrives #for testing
+        # arrives += 1 #for testing
+        # print("caravan " + str(caravanId) + " just arrived at " + str(self.id)) #for testing
+    
+    def addToCaravan(self, truck, target):
+        for i in range(len(self.caravans)):
+            if (self.caravans[i].destination == target):
+                self.caravans[i].addTruck(truck)
+                return
+        self.caravans.append(caravan(API.time).addTruck(truck, target))
 
     def destructor(self):
         return
@@ -158,13 +183,14 @@ class truck():
         
 
 class driver():
-    def __init__(self, truckId):
+    def __init__(self, truckId = None):
         global driverCount
         driverCount += 1
         self.id = driverCount
-        global ownsTruck
-        self.hasSpecificTruck = ownsTruck
-        self.truck = truckId
+        if (truckId != None):
+            global ownsTruck
+            self.hasSpecificTruck = ownsTruck
+            self.truck = truckId
         return
     
     def getId(self):
@@ -175,6 +201,52 @@ class driver():
             return self.truck
         else:
             return False
+
+class caravan():
+    def __init__(self, creationTime, givenId = None):
+        if (givenId != None):
+            self.id = givenId
+            return
+        global caravanCount
+        caravanCount += 1
+        self.id = caravanCount
+        self.trucks = []
+        self.destination = None
+        self.driver = None
+        self.creationTime = creationTime
+
+    def __len__(self):
+        return len(self.trucks)
+
+    def __lt__(self, other):
+        return self.creationTime < other.creationTime
+    
+    def addTruck(self, truck, destination = None):
+        self.trucks.append(truck)
+        if (destination != None):
+            self.destination = destination
+        return
+    
+    def addDriver(self, driver):
+        if (driver == None):
+            self.driver = driver
+            return True
+        return False
+    
+    def takeDriver(self):
+        if (self.driver == None):
+            return False
+        output = self.driver
+        self.driver = None
+        return output
+    
+    def takeNextTruck(self):
+        if (len(self.trucks) > 0):
+            return self.trucks.pop(0)
+        return None
+    
+    def waitTime(self, currentTime):
+        self.creationTime 
 
 
 #RUNNING
