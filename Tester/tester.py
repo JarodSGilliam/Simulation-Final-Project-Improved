@@ -24,3 +24,4 @@ caravans.sort()
 
 for i in range(len(caravans)):
     print("stuffs 2: " + str(caravans[i].creationTime))
+

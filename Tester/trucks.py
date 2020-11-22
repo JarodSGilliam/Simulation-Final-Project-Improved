@@ -75,7 +75,7 @@ class truck_stop:
         else:
             print(event.getType())
     
-    def leave(self, truckId):
+    def leave2(self, truckId):
         if (len(self.drivers) == 0):
             API.addEvent(API.time + 1, "leave", self.id, truckId)
             return
@@ -95,7 +95,7 @@ class truck_stop:
             # print(len(self.drivers))
         # print("leave from " + str(self.id))
 
-    def arrive(self, truck):
+    def arrive2(self, truck):
         waitTime = truck.getWaitTime()
         self.trucks.append(truck)
         API.addEvent(API.time + getLatency(), "leave", self.id, truck.getId())
@@ -104,7 +104,7 @@ class truck_stop:
         self.drivers.append(truck.takeDriver())
         # print("arrive at " + str(self.id))
     
-    def leave2(self, driverId):
+    def leave(self, driverId):
         if (len(self.caravans) < 1):
             API.addEvent(API.time + 1, "leave", self.id, driverId)
             print("Driver ready but no caravans")
@@ -116,39 +116,54 @@ class truck_stop:
                 break
         if (driver == None):
             print("Error: Tried to get a driver that is not here")
+        # print(len(self.caravans))
+        # print(self.caravans)
         self.caravans.sort()
         outgoingCaravan = self.caravans.pop(0)
-        print("Selectd caravan of length " + str(len(outgoingCaravan)) + ".")
+        # print("Selectd caravan of length " + str(len(outgoingCaravan)) + ".")
         outgoingCaravan.addDriver(driver)
-        # caravanId = outgoingCaravan.id #for testing
+        caravanId = outgoingCaravan.id #for testing
         API.addEvent(API.time + getLatency(), "arrive", outgoingCaravan.destination, outgoingCaravan)
-        # global leaves #for testing
-        # leaves += 1 #for testing
-        # print("caravan " + str(outgoingCaravan) + "just left from " + str(self.id)) #for testing
+        global leaves #for testing
+        leaves += 1 #for testing
+        print("caravan " + str(caravanId) + " with length " + str(len(outgoingCaravan)) + " just left from " + str(self.id)) #for testing
 
-    def arrive2(self, caravan):
+    def arrive(self, caravan):
         caravanDriver = caravan.takeDriver()
-        API.addEvent(API.time + caravanDriver.wait(), "leave", self.id, caravanDriver.id)
-        self.drivers.append()
+        caravanLen = len(caravan) #for testing
+        if (caravanDriver == False):
+            print("Error: Caravan arrived with no driver")
+            return
+        API.addEvent(API.time + caravanDriver.wait, "leave", self.id, caravanDriver.id)
+        self.drivers.append(caravanDriver)
         for i in range(len(caravan)):
             truck = caravan.takeNextTruck()
             target = truck.getNextTarget()
             self.addToCaravan(truck, target)
-        # caravanId = caravan.Id #for testing
+        caravanId = caravan.id #for testing
+        if (len(caravan) != 0):
+            print("Trucks left in caravan at deletion")
         del caravan
         for i in range(len(self.drivers)):
             if (self.drivers[i].ready):
                 API.addEvent(API.time, "leave", self.id, self.drivers[i].id)
-        # global arrives #for testing
-        # arrives += 1 #for testing
-        # print("caravan " + str(caravanId) + " just arrived at " + str(self.id)) #for testing
+        global arrives #for testing
+        arrives += 1 #for testing
+        # print(self.caravans)
+        print("caravan " + str(caravanId) + " with length " + str(caravanLen) + " just arrived at " + str(self.id)) #for testing
     
     def addToCaravan(self, truck, target):
+        # print(len(self.caravans))
         for i in range(len(self.caravans)):
+            # if (self.caravans[i] == None):
+            #     print("none was triggered in addToCaravan")
+            #     break
             if (self.caravans[i].destination == target):
                 self.caravans[i].addTruck(truck)
                 return
-        self.caravans.append(caravan(API.time).addTruck(truck, target))
+        newCaravan = caravan(API.time)
+        newCaravan.addTruck(truck, target)
+        self.caravans.append(newCaravan)
 
     def destructor(self):
         return
@@ -166,7 +181,7 @@ def travelTime(thisStop, nextStop):
 
 
 class truck():
-    def __init__(self, driver):
+    def __init__(self, driver = None):
         global truckCount
         truckCount += 1
         self.id = truckCount
@@ -211,6 +226,7 @@ class driver():
             global ownsTruck
             self.hasSpecificTruck = ownsTruck
             self.truck = truckId
+        self.wait = args.LATENCY_LIMIT + 5
         self.ready = False
         return
     
@@ -249,7 +265,7 @@ class caravan():
         return
     
     def addDriver(self, driver):
-        if (driver == None):
+        if (self.driver == None):
             self.driver = driver
             return True
         return False
@@ -283,8 +299,14 @@ for i in range(args.NUMBER_OF_STOPS):
 API.initialize(LPs, args.SIM_LENGTH)
 
 # API.sendMessage(1, "circle0", 0, "")
-for i in range(args.NUMBER_OF_TRUCKS):
-    API.addEvent(1, "arrive", random.randint(0, 4), truck(drivers[i]))
+caravans = int(args.NUMBER_OF_TRUCKS/5)
+for i in range(caravans):
+    tempCaravan = caravan(0)
+    for i in range(5):
+        tempCaravan.addTruck(truck())
+    tempCaravan.addDriver(drivers[i])
+    print("caravan " + str(tempCaravan.id) + " of length " + str(len(tempCaravan)) + " was just created")
+    API.addEvent(1, "arrive", random.randint(0, 4), tempCaravan)
 
 
 #Running the Kernal
@@ -294,6 +316,7 @@ print("Done!")
 
 #Wrapping up
 extra = API.finalize()
+print("extra = " + str(extra))
 # print("The number of trips between between logical processes: " + str(bounces))
 print("Arrives = " + str(arrives) + "\nLeaves = " + str(leaves))
 
