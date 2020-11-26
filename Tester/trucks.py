@@ -44,6 +44,7 @@ ownsTruck = False
 caravanCount = 0
 truckCount = 0
 driverCount = 0
+caravanMaxLength = 10000
 
 arrives = 0
 leaves = 0
@@ -158,7 +159,7 @@ class truck_stop:
             # if (self.caravans[i] == None):
             #     print("none was triggered in addToCaravan")
             #     break
-            if (self.caravans[i].destination == target):
+            if (self.caravans[i].destination == target): # and len(self.caravans[i] < caravanMaxLength)
                 self.caravans[i].addTruck(truck)
                 return
         newCaravan = caravan(API.time)
