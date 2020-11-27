@@ -58,6 +58,7 @@ names = ["a", "b", "c", "d", "e", "f", "g"]
 
 
 #The classes:
+# truck stop class
 class truck_stop:
     def __init__(self, id):
         self.id = id
@@ -175,12 +176,14 @@ def getLatency():
     else:
         return args.LATENCY_LIMIT
 
+# gets the time from any truck stop to any other
 def travelTime(thisStop, nextStop):
     times = [[1, 2, 3, 4, 5], []]
     return random.randint(1, args.LATENCY_LIMIT)
 
 
 
+# truck class
 class truck():
     def __init__(self, driver = None):
         global truckCount
@@ -218,6 +221,7 @@ class truck():
         else:
             return False
 
+# driver class
 class driver():
     def __init__(self, truckId = None):
         global driverCount
@@ -240,6 +244,7 @@ class driver():
         else:
             return False
 
+# caravan class
 class caravan():
     def __init__(self, creationTime, givenId = None):
         if (givenId != None):
