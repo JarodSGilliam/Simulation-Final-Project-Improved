@@ -4,12 +4,13 @@ API.py
 The backend that allows the pingpong.py, circling.py, and phold to work.
 
 Return:
- This will not return anything. Running it on its own will do nothing. It exists soley as support for the other three programs (and many others potentially).
+ This will not return anything. Running it on its own will do nothing. It exists solely as support for the other three programs (and many others potentially).
 """
 
 #SETUP
 #imports
 import queue
+import random
 
 #initial variables
 q = queue.PriorityQueue()
@@ -36,10 +37,24 @@ def sendMessage(time, name, target, payload):
 
 
 class event:
-    def __init__(self, eventType, location, payload):
+    def __init__(self, eventType, target, payload):
         self.type = eventType #leave, driver ready, truck ready, arrive
-        self.location = location #a truckstop
+        self.target = target #a truckstop
         self.payload = payload #caravan (array of trucks), driver, caravan (array of trucks)
+        self.tiebreaker = random.randint(0, 1000000)
+    
+    def getType(self):
+        return self.type
+
+    def getTarget(self) :
+        return self.target
+    
+    def getPayload(self):
+        return self.payload
+    
+    def __lt__(self, other):
+        return self.tiebreaker < other.tiebreaker
+
 
 def addEvent(time, eventType, location, payload):
     global q
@@ -71,18 +86,19 @@ def executeKernal(showqLength):
             lastTime = time
         
         #Aquiring the next message from the queue
-        message = q.get()[1]
+        qItem = q.get()
+        event = qItem[1]
 
         #If time is up, then finnish the kernal's execution
-        if (message.time > SIM_LENGTH):
-            q.put((message.time, message))
+        if (qItem[0] > SIM_LENGTH):
+            q.put(qItem)
             return
-        time = message.time
+        time = qItem[0]
 
         #Runs the event
         #Since the event can be diffrent based on what the LP does (ping's receiveMessage is very diffrent than p-hold's), the LP contains the code for this part, not API
         #Since the event scheduling may be diffrent depending on the simulation and the user's imputs it is also handled by the indiviudal LPs (stored in the LPs array)
-        LPs[message.target].receiveMessage(message)
+        LPs[event.getTarget()].executeEvent(event)
 
 
 #Deinitilizes everything and returns the number of messages that were scheduled but had not been received yet when execution time ran out

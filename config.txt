@@ -1,0 +1,3 @@
+NUMBER_OF_TRUCKS: 100
+TIMES_FILE: C:\Users\jgill\3D Objects\Coding\NEW\locations3.txt
+LATENCY_LIMIT: 
