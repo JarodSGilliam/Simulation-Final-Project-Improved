@@ -37,6 +37,9 @@ import sys
 import API
 import TruckStop
 
+version = "v1.02.01"
+
+
 #Parsing arguments
 parser = argparse.ArgumentParser()
 parser.add_argument('-s', action="store", dest="NUMBER_OF_STOPS",default=5,type=int)
@@ -55,7 +58,13 @@ parser.add_argument('-data', action="store", dest="TIMES_FILE", default=os.path.
 parser.add_argument('-config', action="store", dest="CONFIGURATION_FILE", default=os.path.join(sys.path[0], "config.txt"), type=str) #"C:\\Users\\jgill\\3D Objects\\Coding\\NEW\\"
 parser.add_argument('-verbose', action="store_true", dest="VERBOSE", default=False)
 parser.add_argument('--verbose', action="store_true", dest="VERY_VERBOSE", default=False)
+parser.add_argument('-v', action="store_true", dest="VERSION", default=False)
 args = parser.parse_args()
+
+if (args.VERSION):
+    print(version)
+    exit(0)
+del version
 
 #Variables
 STOPCOUNT = args.NUMBER_OF_STOPS
